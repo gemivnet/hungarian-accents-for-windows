@@ -30,5 +30,3 @@ For uppercase accented characters, simply hold Shift when typing the letter.
 2. Download `hungarian-accents.ahk`
 3. Double-click the script to run it
 4. To start automatically with Windows, place a shortcut in your startup folder
-
-## License
