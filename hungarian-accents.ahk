@@ -47,6 +47,6 @@ HandleAccent(accentType) {
 >!u::HandleAccent("umlaut")
 <!u::HandleAccent("umlaut")
 
-; Alt + o for double acute accent (ő, ű)
->!o::HandleAccent("doubleacute")
-<!o::HandleAccent("doubleacute")
+; Alt + j for double acute accent (ő, ű)
+>!j::HandleAccent("doubleacute")
+<!j::HandleAccent("doubleacute")

@@ -16,7 +16,7 @@ Just like on macOS, you can type accented characters using Alt key combinations:
 
 1. Press `Alt + e` followed by a letter to add an acute accent (á, é, í, ó, ú)
 2. Press `Alt + u` followed by a letter to add an umlaut (ö, ü)
-3. Press `Alt + o` followed by a letter to add a double acute accent (ő, ű)
+3. Press `Alt + j` followed by a letter to add a double acute accent (ő, ű)
 
 For uppercase accented characters, simply hold Shift when typing the letter.
 
