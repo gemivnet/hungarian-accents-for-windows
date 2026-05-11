@@ -11,34 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install AutoHotkey v2 via official installer
+      - name: Download AutoHotkey v2 runtime
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          Invoke-WebRequest -Uri "https://www.autohotkey.com/download/ahk-v2.exe" -OutFile ahk-v2-installer.exe
-          # /S = silent install (NSIS convention used by AHK installer)
-          $proc = Start-Process -FilePath ".\ahk-v2-installer.exe" -ArgumentList "/S" -Wait -PassThru
-          Write-Host "Installer exit code: $($proc.ExitCode)"
-          Write-Host "Contents of C:\Program Files\AutoHotkey :"
-          Get-ChildItem "C:\Program Files\AutoHotkey" -ErrorAction SilentlyContinue | Format-Table Name
-          Write-Host "Contents of Compiler subfolder:"
-          Get-ChildItem "C:\Program Files\AutoHotkey\Compiler" -ErrorAction SilentlyContinue | Format-Table Name
-
-      - name: Compile
-        shell: cmd
-        timeout-minutes: 5
-        run: |
-          mkdir dist 2>nul
-          set "AHKDIR=C:\Program Files\AutoHotkey"
-          set "COMPILER=%AHKDIR%\Compiler\Ahk2Exe.exe"
-          set "BASE=%AHKDIR%\v2\AutoHotkey64.exe"
-          if not exist "%BASE%" set "BASE=%AHKDIR%\AutoHotkey64.exe"
-          echo Compiler: %COMPILER%
-          echo Base:     %BASE%
-          start /wait /min "" "%COMPILER%" /in src\main.ahk /out dist\HungarianAccents.exe /base "%BASE%"
-          echo Ahk2Exe exit code: %ERRORLEVEL%
-          dir dist
-          if not exist "dist\HungarianAccents.exe" exit /b 1
+          $ahkVersion = "2.0.18"
+          Invoke-WebRequest -Uri "https://github.com/AutoHotkey/AutoHotkey/releases/download/v$ahkVersion/AutoHotkey_$ahkVersion.zip" -OutFile ahk.zip
+          Expand-Archive -Path ahk.zip -DestinationPath ahk -Force
+          if (-not (Test-Path "ahk\AutoHotkey64.exe")) { throw "AutoHotkey64.exe missing" }
+          Get-ChildItem ahk\AutoHotkey64.exe | Format-Table Name,Length
 
       - name: Build installer
         shell: pwsh
@@ -56,6 +37,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: HungarianAccents-preview
-          path: |
-            dist\HungarianAccents.exe
-            dist\HungarianAccentsSetup.exe
+          path: dist\HungarianAccentsSetup.exe

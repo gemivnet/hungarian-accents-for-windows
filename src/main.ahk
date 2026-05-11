@@ -20,6 +20,11 @@ SetWorkingDir A_ScriptDir
 
 global APP_NAME := "HungarianAccents"
 
+; Named mutex so the Inno Setup installer can detect a running instance via
+; its AppMutex= directive and close it before replacing files. GUID matches
+; the AppMutex in installer/HungarianAccents.iss.
+DllCall("CreateMutexW", "Ptr", 0, "Int", 0, "WStr", "Global\HungarianAccents-7195D9C4")
+
 AppConfigInit(APP_NAME)
 AutostartInit(APP_NAME)
 UpdaterInit(APP_NAME, "gemivnet", "hungarian-accents-for-windows")
