@@ -11,24 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install AutoHotkey v2 via Chocolatey
+      - name: Install AutoHotkey v2 via official installer
         shell: pwsh
         run: |
-          choco install autohotkey -y --no-progress
-          $ahkDir = "C:\Program Files\AutoHotkey"
-          Write-Host "AHK dir contents:"
-          Get-ChildItem $ahkDir | Format-Table Name,Length
-          Get-ChildItem "$ahkDir\v2" -ErrorAction SilentlyContinue | Format-Table Name,Length
-
-      - name: Download Ahk2Exe and install into AHK Compiler dir
-        shell: pwsh
-        run: |
-          $url = (Invoke-RestMethod "https://api.github.com/repos/AutoHotkey/Ahk2Exe/releases/latest").assets[0].browser_download_url
-          Invoke-WebRequest -Uri $url -OutFile ahk2exe.zip
-          $compilerDir = "C:\Program Files\AutoHotkey\Compiler"
-          New-Item -ItemType Directory -Force -Path $compilerDir | Out-Null
-          Expand-Archive -Path ahk2exe.zip -DestinationPath $compilerDir -Force
-          Get-ChildItem $compilerDir | Format-Table Name,Length
+          $ErrorActionPreference = "Stop"
+          Invoke-WebRequest -Uri "https://www.autohotkey.com/download/ahk-v2.exe" -OutFile ahk-v2-installer.exe
+          # /S = silent install (NSIS convention used by AHK installer)
+          $proc = Start-Process -FilePath ".\ahk-v2-installer.exe" -ArgumentList "/S" -Wait -PassThru
+          Write-Host "Installer exit code: $($proc.ExitCode)"
+          Write-Host "Contents of C:\Program Files\AutoHotkey :"
+          Get-ChildItem "C:\Program Files\AutoHotkey" -ErrorAction SilentlyContinue | Format-Table Name
+          Write-Host "Contents of Compiler subfolder:"
+          Get-ChildItem "C:\Program Files\AutoHotkey\Compiler" -ErrorAction SilentlyContinue | Format-Table Name
 
       - name: Compile
         shell: cmd
