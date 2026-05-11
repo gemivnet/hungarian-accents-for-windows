@@ -11,20 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download AutoHotkey v2 + Ahk2Exe
+      - name: Install AutoHotkey v2 + Ahk2Exe via Chocolatey
         shell: pwsh
         run: |
-          $ahkVersion = "2.0.18"
-          Invoke-WebRequest -Uri "https://github.com/AutoHotkey/AutoHotkey/releases/download/v$ahkVersion/AutoHotkey_$ahkVersion.zip" -OutFile ahk.zip
-          Expand-Archive -Path ahk.zip -DestinationPath ahk -Force
-          $ahk2exeAsset = (Invoke-RestMethod "https://api.github.com/repos/AutoHotkey/Ahk2Exe/releases/latest").assets[0].browser_download_url
-          Invoke-WebRequest -Uri $ahk2exeAsset -OutFile ahk2exe.zip
-          Expand-Archive -Path ahk2exe.zip -DestinationPath ahk\Compiler -Force
-          if (-not (Test-Path "ahk\Compiler\Ahk2Exe.exe")) {
-            Write-Error "Ahk2Exe.exe not found after extracting Ahk2Exe zip"
-            Get-ChildItem ahk\Compiler -Recurse | Select-Object -First 30 FullName
-            exit 1
-          }
+          choco install autohotkey -y --no-progress
+          # Choco installs to C:\Program Files\AutoHotkey\ with Compiler\ subfolder.
+          $ahkDir = "C:\Program Files\AutoHotkey"
+          Write-Host "AHK dir contents:"
+          Get-ChildItem $ahkDir -Recurse -Depth 2 | Select-Object -First 50 FullName
 
       - name: Compile
         shell: pwsh
@@ -32,15 +26,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          $base = "$PWD\ahk\AutoHotkey64.exe"
-          $compiler = "$PWD\ahk\Compiler\Ahk2Exe.exe"
+          $ahkDir = "C:\Program Files\AutoHotkey"
+          # Pick whichever base exists — choco may install v1 or v2 variants.
+          $base = @("$ahkDir\v2\AutoHotkey64.exe","$ahkDir\AutoHotkey64.exe","$ahkDir\AutoHotkey.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          $compiler = @("$ahkDir\Compiler\Ahk2Exe.exe","$ahkDir\Ahk2Exe\Ahk2Exe.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $base)     { throw "No AutoHotkey base .exe found under $ahkDir" }
+          if (-not $compiler) { throw "Ahk2Exe.exe not found under $ahkDir" }
           Write-Host "Compiler: $compiler"
           Write-Host "Base:     $base"
           $iconArg = @()
           if (Test-Path "assets\icon.ico") { $iconArg = @("/icon", "assets\icon.ico") }
-          # Ahk2Exe is a GUI app — give it a real (hidden) window so Windows
-          # pumps messages, otherwise it blocks forever waiting for the
-          # UI thread to settle. Also redirect stdin from NUL.
           $argList = @("/in","src\main.ahk","/out","dist\HungarianAccents.exe","/base",$base) + $iconArg
           Write-Host "Args: $($argList -join ' ')"
           $proc = Start-Process -FilePath $compiler -ArgumentList $argList -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput "ahk2exe.stdout.log" -RedirectStandardError "ahk2exe.stderr.log"
