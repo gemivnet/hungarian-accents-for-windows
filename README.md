@@ -1,6 +1,6 @@
 # hungarian-accents-for-windows
 
-macOS-style accent input for Hungarian characters on Windows. Hold `Alt + e/u/j`, then a letter, to type `á é í ó ú ö ü ő ű`. Distributed as a single self-contained `.exe` — no AutoHotkey install required.
+macOS-style accent input for Hungarian characters on Windows. Hold `Alt + e/u/j`, then a letter, to type `á é í ó ú ö ü ő ű`. Distributed as an Inno Setup installer (`.exe`) that bundles the AutoHotkey v2 runtime and scripts — no separate AutoHotkey install required.
 
 ## Install
 
@@ -39,15 +39,20 @@ On launch and via the tray menu, the app polls GitHub Releases. If a newer build
 
 ## Building from source
 
-Requires Windows + [AutoHotkey v2](https://www.autohotkey.com/) (which ships with Ahk2Exe under `Compiler\`):
+Requires Windows + [Inno Setup 6](https://jrsoftware.org/isinfo.php). The build downloads the AutoHotkey v2 runtime and packages it with the scripts into an installer — it does not compile a standalone `.exe`. Mirror the CI flow (see `.github/workflows/ci.yml`):
 
 ```powershell
-& "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe" `
-    /in src\main.ahk /out dist\HungarianAccents.exe `
-    /base "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe"
+# 1. Fetch the AutoHotkey v2 runtime into ahk\
+$ahkVersion = "2.0.18"
+Invoke-WebRequest -Uri "https://github.com/AutoHotkey/AutoHotkey/releases/download/v$ahkVersion/AutoHotkey_$ahkVersion.zip" -OutFile ahk.zip
+Expand-Archive -Path ahk.zip -DestinationPath ahk -Force
+
+# 2. Build the installer with Inno Setup
+$version = (Get-Content VERSION -Raw).Trim()
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$version /Odist installer\HungarianAccents.iss
 ```
 
-CI builds an artifact on every push; tag `vX.Y.Z` (and push the tag) to trigger a release build that publishes the `.exe` to GitHub Releases.
+This produces `dist\HungarianAccentsSetup.exe`. CI builds this artifact on every push; tag `vX.Y.Z` (and push the tag) to trigger a release build that injects the version and publishes the installer to GitHub Releases.
 
 ## Layout
 
