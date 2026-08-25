@@ -52,7 +52,9 @@ $version = (Get-Content VERSION -Raw).Trim()
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DAppVersion=$version /Odist installer\HungarianAccents.iss
 ```
 
-This produces `dist\HungarianAccentsSetup.exe`. CI builds this artifact on every push; tag `vX.Y.Z` (and push the tag) to trigger a release build that injects the version and publishes the installer to GitHub Releases.
+This produces `dist\HungarianAccentsSetup.exe`. Both CI and the release build share the composite action in `.github/actions/build-installer/`, which also runs `AutoHotkey64.exe /validate` over `src\main.ahk` so a syntax error fails the build instead of shipping.
+
+CI builds the installer on every push and uploads it as the `HungarianAccents-preview` artifact. To publish, push a `vX.Y` or `vX.Y.Z` tag — the release build injects the version and attaches the installer to GitHub Releases.
 
 ## Layout
 
@@ -69,6 +71,8 @@ src/
     accents.ahk             # accent maps + input hook
     settings_gui.ahk        # settings window
 .github/workflows/
-  ci.yml                    # compile-check on push/PR
-  release.yml               # build + publish on v*.*.* tag
+  ci.yml                    # validate + build installer on push/PR
+  release.yml               # build + publish on v* tag
+.github/actions/
+  build-installer/          # shared runtime fetch + validate + compile
 ```
