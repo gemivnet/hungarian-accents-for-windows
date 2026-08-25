@@ -21,9 +21,14 @@ SetWorkingDir A_ScriptDir
 global APP_NAME := "HungarianAccents"
 
 ; Named mutex so the Inno Setup installer can detect a running instance via
-; its AppMutex= directive and close it before replacing files. GUID matches
+; its AppMutex= directive and close it before replacing files. Name matches
 ; the AppMutex in installer/HungarianAccents.iss.
-DllCall("CreateMutexW", "Ptr", 0, "Int", 0, "WStr", "Global\HungarianAccents-7195D9C4")
+;
+; Deliberately session-local, not "Global\": creating a Global\ object needs
+; SeCreateGlobalPrivilege, which a standard user does not have, and the
+; installer runs with PrivilegesRequired=lowest. Inno opens the exact name it
+; is given, so a session-local name is what both sides must agree on.
+DllCall("CreateMutexW", "Ptr", 0, "Int", 0, "WStr", "HungarianAccents-7195D9C4")
 
 AppConfigInit(APP_NAME)
 AutostartInit(APP_NAME)

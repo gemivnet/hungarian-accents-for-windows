@@ -33,7 +33,7 @@ WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
-AppMutex=Global\HungarianAccents-7195D9C4
+AppMutex=HungarianAccents-7195D9C4
 #if FileExists(AddBackslash(SourcePath) + "..\assets\icon.ico")
 SetupIconFile=..\assets\icon.ico
 #endif
